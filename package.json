@@ -1,0 +1,21 @@
+{
+  "name": "mod-updates",
+  "version": "1.0.0",
+  "description": "A server for Minecraft modders that manages mod updates. (inspiration)",
+  "main": "src/index.js",
+  "repository": "https://github.com/theLeialoha/mod-update-server.git",
+  "author": "Leialoha",
+  "license": "All Rights Reserved",
+  "private": true,
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongoose": "^8.9.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "nodemon": "^3.1.9"
+  },
+  "scripts": {
+    "dev": "nodemon"
+  }
+}
