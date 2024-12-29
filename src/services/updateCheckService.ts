@@ -4,7 +4,7 @@ import { UpdateCheckResponse, VersionUpdateInfo } from "../types/dtos";
 import { ModEntity, UpdateEntity } from "../types/entities";
 import { List, Optional } from "../types/java";
 
-function modUpdatesForLoader(loader: string, modID: string): UpdateCheckResponse {
+export function modUpdatesForLoader(loader: string, modID: string): UpdateCheckResponse {
     var optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 

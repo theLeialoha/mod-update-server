@@ -5,7 +5,7 @@ import { Mod, Update, UpdateWithMod, UpdateWithoutIdAndMod } from "../types/dtos
 import { ModAndUpdate, ModEntity, UpdateEntity } from "../types/entities";
 import { List, Optional, int, long } from "../types/java";
 
-function getUpdates(amount: int, page: int): List<UpdateWithMod> {
+export function getUpdates(amount: int, page: int): List<UpdateWithMod> {
     const p: List<ModAndUpdate> = UpdateRepository.getAllUpdatesWithMod(Pageable.of(page, amount));
     return p.map(e => {
         const updateWithMod: UpdateWithMod = e.update as any as UpdateWithMod;
@@ -20,13 +20,12 @@ function getUpdates(amount: int, page: int): List<UpdateWithMod> {
  * @param page   the page
  * @return <code>null</code> if the mod does not exist
  */
-function getModUpdates(modID: string, amount: int, page: int): Optional<List<Update>> {
+export function getModUpdates(modID: string, amount: int, page: int): Optional<List<Update>> {
     const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) return null;
     const mod: ModEntity = optionalMod;
 
     const p: List<UpdateEntity> = UpdateRepository.findAllByModOrderByPublishDateDesc(mod.modID, Pageable.of(page, amount));
-
     return p.map(updateEntity => updateEntity as Update);
 }
 
@@ -35,7 +34,7 @@ function getModUpdates(modID: string, amount: int, page: int): Optional<List<Upd
  * @param update the update
  * @return <code>false</code> if the mod does not exist
  */
-function addUpdate(modID: string, update: UpdateWithoutIdAndMod): boolean {
+export function addUpdate(modID: string, update: UpdateWithoutIdAndMod): boolean {
     const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) return false;
     const mod: ModEntity = optionalMod;
@@ -52,7 +51,7 @@ function addUpdate(modID: string, update: UpdateWithoutIdAndMod): boolean {
  * @return the update
  * @throws {Error} if the mod or update doesn't exist
  */
-function getUpdate(modID: string, updateID: long): Update {
+export function getUpdate(modID: string, updateID: long): Update {
     const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 
@@ -69,7 +68,7 @@ function getUpdate(modID: string, updateID: long): Update {
  * @param update   the update
  * @throws {Error} if the mod or update doesn't exist
  */
-function editUpdate(modID: string, updateID: long, update: UpdateWithoutIdAndMod): void {
+export function editUpdate(modID: string, updateID: long, update: UpdateWithoutIdAndMod): void {
     const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 
@@ -94,7 +93,7 @@ function editUpdate(modID: string, updateID: long, update: UpdateWithoutIdAndMod
  * @param updateID the update ID
  * @throws {Error} if the mod or update doesn't exist
  */
-function deleteUpdate(modID: string, updateID: long): void {
+export function deleteUpdate(modID: string, updateID: long): void {
     const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 

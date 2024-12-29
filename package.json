@@ -10,11 +10,13 @@
   "dependencies": {
     "express": "^4.21.2",
     "mongoose": "^8.9.2",
-    "uuid": "^11.0.3"
+    "uuid": "^11.0.3",
+    "uuid-validate": "^0.0.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/uuid": "^10.0.0",
+    "@types/uuid-validate": "^0.0.3",
     "dotenv": "^16.4.7",
     "nodemon": "^3.1.9"
   },

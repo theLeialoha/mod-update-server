@@ -5,11 +5,11 @@ import { ModEntity } from "../types/entities";
 import { List, Optional } from "../types/java";
 
 
-function doesModExist(modId: string): boolean {
+export function doesModExist(modId: string): boolean {
     return ModRepository.findById(modId) != null;
 }
 
-function getMods(): List<Mod> {
+export function getMods(): List<Mod> {
     return ModRepository.findAll().map(modEntity => modEntity as Mod);
 }
 
@@ -17,7 +17,7 @@ function getMods(): List<Mod> {
  * @param mod the mod
  * @return <code>false</code> if the mod already exists
  */
-function addMod(mod: Mod): boolean  {
+export function addMod(mod: Mod): boolean  {
     if (doesModExist(mod.modID)) return false;
     ModRepository.save(mod as ModEntity);
     return true;
@@ -28,7 +28,7 @@ function addMod(mod: Mod): boolean  {
  * @param mod   the mod
  * @return <code>false</code> if the mod does not exist
  */
-function editMod(modID: string, mod: ModWithoutModId): boolean {
+export function editMod(modID: string, mod: ModWithoutModId): boolean {
     var optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) return false;
     var modToUpdate: ModEntity = optionalMod;
@@ -43,7 +43,7 @@ function editMod(modID: string, mod: ModWithoutModId): boolean {
     return true;
 }
 
-function getMod(modID: string): Optional<ModWithUpdateCount> {
+export function getMod(modID: string): Optional<ModWithUpdateCount> {
     return ModRepository.getModWithUpdateCount(modID) as Optional<ModWithUpdateCount>;
 }
 
@@ -51,7 +51,7 @@ function getMod(modID: string): Optional<ModWithUpdateCount> {
  * @param modID the mod ID
  * @throws {Error} if the mod or update doesn't exist or the update couldn't get deleted
  */
-function deleteMod(modID: string): void {
+export function deleteMod(modID: string): void {
     var optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 

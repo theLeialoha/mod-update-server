@@ -4,7 +4,7 @@ import { Backup, ModWithUpdates, UpdateWithoutIdAndMod } from "../types/dtos";
 import { ModEntity, UpdateEntity } from "../types/entities";
 import { List } from "../types/java";
 
-function getBackup(): Backup {
+export function getBackup(): Backup {
     var mods: List<ModWithUpdates> = [];
     for (const mod of ModRepository.findAll()) {
         const modWithUpdates: ModWithUpdates = mod as any as ModWithUpdates;
@@ -18,7 +18,7 @@ function getBackup(): Backup {
  * @param backup the backup
  * @return <code>false</code> if the database is not empty
  */
-function restore(backup: Backup): boolean {
+export function restore(backup: Backup): boolean {
     if (ModRepository.count() > 0 || UpdateRepository.count() > 0) {
         return false;
     }

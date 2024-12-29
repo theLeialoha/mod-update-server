@@ -1,6 +1,13 @@
 // index.ts
 import express, { Request, Response } from 'express';
-import modsRoute from './routes/mods';
+
+import apiKeyRoute from './routes/apiKeyController';
+import backupRoute from './routes/backupController';
+import forgeRoute from './routes/forgeController';
+import modRoute from './routes/modController';
+import updateCheckRoute from './routes/updateCheckController';
+import updateRoute from './routes/updateController';
+
 const app = express();
 
 const PORT = process.env.port || 3000;
@@ -9,25 +16,15 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Hello from TypeScript Express!');
 });
 
-app.use('/mods', modsRoute);
+app.use(forgeRoute);
+app.use('/apikeys', apiKeyRoute);
+app.use('/backup', backupRoute);
+app.use('/mods', modRoute);
+app.use('/check', updateCheckRoute);
+app.use('/updates', updateRoute);
 
 app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
 });
 
-
-// The Forge update check format.
-// (GET) /forge/MOD_ID
-
-// A general purpose update check format.
-// (GET) /check/LOADER/MOD_ID
-
-// A list of all API keys.
-// (GET) /apikeys
-
-// Adds a new API keys. See [ApiKey](#apikey).
-// (POST) /apikeys/add
-
-// Removes an API keys.
-// (DELETE) /apikeys/APIKEY
 

@@ -3,7 +3,7 @@ import { UpdateRepository } from "../repositories/UpdateRepository";
 import { ModEntity, UpdateEntity } from "../types/entities";
 import { HashMap, List, Optional } from "../types/java";
 
-function modUpdatesForLoader(loader: string, modID: string): HashMap<string, any> {
+export function modUpdatesForLoader(loader: string, modID: string): HashMap<string, any> {
     const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) return {};
 
