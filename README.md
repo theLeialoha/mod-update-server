@@ -131,7 +131,7 @@ and the web interface is usually available at port 3000 (If not already in use).
 |------------------|-----------------------------------------------------------------|---------------|
 | `DB_PROTOCOL`    | The Protocol of the MongoDB database                            | `mongodb`     |
 | `DB_HOSTNAME`    | The IP / Hostname of the MongoDB database                       | ` `           |
-| `DB_PORT`        | The port of the MongoDB database                                | `27017`       |
+| `DB_PORT`        | The port of the MongoDB database                                | ` `           |
 | `DB_NAME`        | The database name                                               | ` `           |
 | `DB_USERNAME`    | The database username                                           | ` `           |
 | `DB_PASSWORD`    | The database password                                           | ` `           |

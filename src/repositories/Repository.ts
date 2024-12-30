@@ -13,8 +13,8 @@ class BaseRepository<T> {
     private static counter: Collection;
 
     protected cache: Cache<T> = {};
-    protected collection: Collection<T & Document>;
-    protected syncInterval: NodeJS.Timeout;
+    protected collection!: Collection<T & Document>;
+    protected syncInterval!: NodeJS.Timeout;
 
     // Shared MongoClient instance across all repositories
     constructor(private collectionName: string) {
@@ -39,7 +39,7 @@ class BaseRepository<T> {
         const clientUrl = url.format({
             protocol: 'http', auth,
             hostname: process.env.DB_HOSTNAME,
-            port: process.env.DB_PORT || 27017,
+            port: process.env.DB_PORT,
         }).replace(/^http/i, process.env.DB_PROTOCOL || 'mongodb');
 
         this.client = new MongoClient(clientUrl).connect();
@@ -114,7 +114,7 @@ export class ManagedRepository<T> extends BaseRepository<T> {
         if (this.cache[id] == undefined) return null;
 
         // We don't want to override the id
-        delete update['_id'];
+        delete (update as any)._id;
 
         for (const key in this.cache[id]) {
             if (update[key] != undefined)
@@ -136,13 +136,6 @@ export class ManagedRepository<T> extends BaseRepository<T> {
         return this.findAll().length;
     }
 
-    // // Add specific methods for users, e.g., find by username
-    // public async findByUsername(username: string): Promise<any | null> {
-    //     const user = await this.collection.findOne({ username });
-    //     return user;
-    // }
-
-
     protected get nextSequenceValue() {
         this.saveNextSequenceValue();
         return this.sequenceValue++;
@@ -163,27 +156,3 @@ export class Pageable {
         return new Pageable(page, amount);
     }
 }
-
-// export class Repository {
-//     public counter: number = 0;
-
-//     save(entry: any): any {
-//         throw new Error("Method not implemented.");
-//     }
-//     deleteById(id: string) {
-//         throw new Error("Method not implemented.");
-//     }
-//     existsById(id: string): boolean {
-//         throw new Error("Method not implemented.");
-//     }
-//     findById(id: string): Optional<any> {
-//         throw new Error("Method not implemented.");
-//     }
-//     findAll(): List<any> {
-//         throw new Error("Method not implemented.");
-//     }
-//     count(): number {
-//         throw new Error("Method not implemented.");
-//     }
-
-// }

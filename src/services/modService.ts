@@ -6,7 +6,7 @@ import { List, Optional } from "../types/java";
 
 
 export function doesModExist(modId: string): boolean {
-    return ModRepository.findById(modId) != null;
+    return ModRepository.findByModId(modId) != null;
 }
 
 export function getMods(): List<Mod> {
@@ -29,7 +29,7 @@ export function addMod(mod: Mod): boolean  {
  * @return <code>false</code> if the mod does not exist
  */
 export function editMod(modID: string, mod: ModWithoutModId): boolean {
-    var optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
+    var optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) return false;
     var modToUpdate: ModEntity = optionalMod;
 
@@ -52,11 +52,11 @@ export function getMod(modID: string): Optional<ModWithUpdateCount> {
  * @throws {Error} if the mod or update doesn't exist or the update couldn't get deleted
  */
 export function deleteMod(modID: string): void {
-    var optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
+    var optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 
     var mod: ModEntity = optionalMod;
 
     UpdateRepository.removeAllByMod(mod.modID);
-    ModRepository.deleteById(mod.modID);
+    ModRepository.deleteByModId(mod.modID);
 }

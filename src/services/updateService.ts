@@ -21,7 +21,7 @@ export function getUpdates(amount: int, page: int): List<UpdateWithMod> {
  * @return <code>null</code> if the mod does not exist
  */
 export function getModUpdates(modID: string, amount: int, page: int): Optional<List<Update>> {
-    const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
+    const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) return null;
     const mod: ModEntity = optionalMod;
 
@@ -35,7 +35,7 @@ export function getModUpdates(modID: string, amount: int, page: int): Optional<L
  * @return <code>false</code> if the mod does not exist
  */
 export function addUpdate(modID: string, update: UpdateWithoutIdAndMod): boolean {
-    const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
+    const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) return false;
     const mod: ModEntity = optionalMod;
     Object.defineProperty(update, "mod", { value: mod.modID });
@@ -51,7 +51,7 @@ export function addUpdate(modID: string, update: UpdateWithoutIdAndMod): boolean
  * @throws {Error} if the mod or update doesn't exist
  */
 export function getUpdate(modID: string, updateID: long): Update {
-    const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
+    const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 
     const mod: ModEntity = optionalMod;
@@ -68,7 +68,7 @@ export function getUpdate(modID: string, updateID: long): Update {
  * @throws {Error} if the mod or update doesn't exist
  */
 export function editUpdate(modID: string, updateID: long, update: UpdateWithoutIdAndMod): void {
-    const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
+    const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 
     const mod: ModEntity = optionalMod;
@@ -93,7 +93,7 @@ export function editUpdate(modID: string, updateID: long, update: UpdateWithoutI
  * @throws {Error} if the mod or update doesn't exist
  */
 export function deleteUpdate(modID: string, updateID: long): void {
-    const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
+    const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 
     const mod: ModEntity = optionalMod;

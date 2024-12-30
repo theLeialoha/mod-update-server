@@ -4,7 +4,7 @@ import { ModEntity, UpdateEntity } from "../types/entities";
 import { HashMap, List, Optional } from "../types/java";
 
 export function modUpdatesForLoader(loader: string, modID: string): HashMap<string, any> {
-    const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
+    const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) return {};
 
     // Counter.builder("requests.update_check.cache_miss").tag("loader", loader).tag("modID", modID).register(meterRegistry).increment();

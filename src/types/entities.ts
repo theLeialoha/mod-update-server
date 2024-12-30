@@ -2,7 +2,7 @@
 // Extra types
 
 import { v4 as UUIDv4 } from 'uuid';
-import { long, UUID } from './java';
+import { long, Optional, UUID } from './java';
 
 type ReleaseType = 'beta' | 'alpha' | 'release';
 type ModLoader = 'forge' | 'neoforge' | 'fabric' | 'quilt';
@@ -12,16 +12,22 @@ type ModLoader = 'forge' | 'neoforge' | 'fabric' | 'quilt';
 export class ApiKeyEntity {
     apiKey: UUID = UUIDv4();
     mods: string[] = [];
+
+    readonly toString = () => JSON.stringify(this);
 }
 
 export class ModAndUpdate {
     mod: ModEntity = new ModEntity();
     update: UpdateEntity = new UpdateEntity();
+
+    readonly toString = () => JSON.stringify(this);
 }
 
 export class ModAndUpdateCount {
     mod: ModEntity = new ModEntity();
     updateCount: number = 0;
+
+    readonly toString = () => JSON.stringify(this);
 }
 
 export class ModEntity {
@@ -31,6 +37,8 @@ export class ModEntity {
     websiteURL: string = '-';
     downloadURL: string = '-';
     issueURL: string = '-';
+
+    readonly toString = () => JSON.stringify(this);
 }
 
 export class UpdateEntity {
@@ -43,6 +51,8 @@ export class UpdateEntity {
     tags: string[] = [];
     modLoader: ModLoader = 'forge';
     mod: string = '-';
+
+    readonly toString = () => JSON.stringify(this);
 }
 
 
@@ -64,6 +74,11 @@ export function createInstance<T>(cls: Constructor<T>, fields: Partial<T>): T {
     }
 
     return instance;
+}
+
+export function createNullableInstance<T>(cls: Constructor<T>, fields: Optional<Partial<T>>): Optional<T> {
+    if (fields == null) return null;
+    return createInstance(cls, fields);
 }
 
 

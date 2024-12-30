@@ -22,13 +22,12 @@ export function validateHeaders(req: Request): void {
 
 export function validateHeadersMaster(req: Request): void {
     const apikey: UUID = parseApiKey(getApiKey(req));
-    if (apikey != getMasterKey())  throw new Error("Insufficient permissions");
-
+    if (apikey != getMasterKey() || !validateUUID(getMasterKey() || "")) throw new Error("Insufficient permissions");
 }
 
 export function hasPermission(key: Optional<string>, modID: string): boolean {
     const uuid: UUID = parseApiKey(key);
-    if (uuid == getMasterKey()) return true;
+    if (uuid == getMasterKey() && validateUUID(getMasterKey() || "")) return true;
 
     const apikey: Optional<ApiKey> = ApiKeyService.getApiKey(uuid);
     if (apikey == null) throw new Error("Invalid API key");
@@ -38,7 +37,7 @@ export function hasPermission(key: Optional<string>, modID: string): boolean {
 }
 
 function getMasterKey(): Optional<UUID> {
-    const apiKey = process.env["MASTER_KEY"];
+    const apiKey = process.env.MASTER_KEY;
     if (!apiKey || !validateUUID(apiKey)) return null;
     return apiKey;
 }

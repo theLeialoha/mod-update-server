@@ -1,12 +1,29 @@
-import { ModAndUpdateCount, ModEntity } from "../types/entities";
+import { ModAndUpdateCount, ModEntity, createNullableInstance } from "../types/entities";
 import { Optional } from "../types/java";
 import { ManagedRepository } from "./Repository";
+import { UpdateRepository } from "./UpdateRepository";
 
 class ModRepositoryImp extends ManagedRepository<any> {
 
-//     @Query("SELECT new de.maxhenkel.modupdateserver.entities.ModAndUpdateCount(m, COUNT(u.id)) FROM update u, mod m WHERE m.modID = :modId AND m.modID = u.mod GROUP BY u.mod, m.modID")
-    getModWithUpdateCount(modId: string): Optional<ModAndUpdateCount> {
-        return null;
+    findByModId(modID: string): Optional<ModEntity> {
+        const mod = this.findAll().find(v => v.modID == modID);
+        return createNullableInstance(ModEntity, mod);
+    }
+
+    deleteByModId(modID: string) {
+        const mod = this.findAll().find(v => v.modID == modID);
+        if (mod != null) this.deleteById(mod._id);
+    }
+
+    getModWithUpdateCount(modID: string): Optional<ModAndUpdateCount> {
+        const mod = this.findByModId(modID);
+        if (mod == null) return null;
+        const updateCount = UpdateRepository.getAllByMod(modID).length;
+        return createNullableInstance(ModAndUpdateCount, { mod, updateCount });
+    }
+
+    public existsByModId(modID: string): boolean {
+        return this.findAll().find(v => v.modID == modID) != null;
     }
 
 }

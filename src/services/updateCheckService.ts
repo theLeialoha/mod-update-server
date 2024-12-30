@@ -5,7 +5,7 @@ import { ModEntity, UpdateEntity } from "../types/entities";
 import { List, Optional } from "../types/java";
 
 export function modUpdatesForLoader(loader: string, modID: string): UpdateCheckResponse {
-    var optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
+    var optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) throw new Error("Mod does not exist");
 
     // Counter.builder("requests.update_check.cache_miss").tag("loader", loader).tag("modID", modID).register(meterRegistry).increment();

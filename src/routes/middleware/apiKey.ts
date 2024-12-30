@@ -7,7 +7,7 @@ export const validateApiKey = (req: Request, res: Response, next: NextFunction) 
         AuthenticationAspect.validateHeaders(req);
         next();
     } catch (e) {
-        res.status(401).send(e);
+        res.status(401).send((e as Error).message);
     }
 }
 
@@ -16,6 +16,6 @@ export const validateMasterApiKey = (req: Request, res: Response, next: NextFunc
         AuthenticationAspect.validateHeadersMaster(req);
         next();
     } catch (e) {
-        res.status(401).send(e);
+        res.status(401).send((e as Error).message);
     }
 }
