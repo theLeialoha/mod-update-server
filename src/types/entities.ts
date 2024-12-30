@@ -1,8 +1,7 @@
 
 // Extra types
 
-import { UpdateRepository } from '../repositories/UpdateRepository';
-import { ModWithUpdates, UpdateWithoutIdAndMod } from './dtos';
+import { v4 as UUIDv4 } from 'uuid';
 import { long, UUID } from './java';
 
 type ReleaseType = 'beta' | 'alpha' | 'release';
@@ -11,65 +10,60 @@ type ModLoader = 'forge' | 'neoforge' | 'fabric' | 'quilt';
 // entities
 
 export class ApiKeyEntity {
-    apiKey: UUID;
-    mods: string[];
-
-    constructor(...args: any) {
-        this.apiKey = args[0] as UUID;
-        this.mods = args[1] as string[];
-    }
+    apiKey: UUID = UUIDv4();
+    mods: string[] = [];
 }
 
 export class ModAndUpdate {
-    mod: ModEntity;
-    update: UpdateEntity;
+    mod: ModEntity = new ModEntity();
+    update: UpdateEntity = new UpdateEntity();
 }
 
 export class ModAndUpdateCount {
-    mod: ModEntity;
-    updateCount: number;
+    mod: ModEntity = new ModEntity();
+    updateCount: number = 0;
 }
 
 export class ModEntity {
-    modID: string;
-    name: string;
-    description: string;
-    websiteURL: string;
-    downloadURL: string;
-    issueURL: string;
-
-    constructor(arg: any) {
-        this.modID = arg.mod || arg.modID;
-        this.name = '-';
-        this.description = '-';
-        this.websiteURL = '-';
-        this.downloadURL = '-';
-        this.issueURL = '-';
-
-        if (this.modID == null) throw new Error('Mod ID is required');
-    }
+    modID: string = '-';
+    name: string = '-';
+    description: string = '-';
+    websiteURL: string = '-';
+    downloadURL: string = '-';
+    issueURL: string = '-';
 }
 
 export class UpdateEntity {
-    id: long;
-    publishDate: Date;
-    gameVersion: string;
-    version: string;
-    updateMessages: string[];
-    releaseType: ReleaseType;
-    tags: string[];
-    modLoader: ModLoader;
-    mod: string;
-
-    constructor(arg: any) {
-        this.id = arg.id || UpdateRepository.counter++;
-        this.publishDate = arg.publishDate || new Date();
-        this.gameVersion = arg.gameVersion || '-';
-        this.version = arg.version || '-';
-        this.updateMessages = arg.updateMessages || [];
-        this.releaseType = arg.releaseType || 'forge';
-        this.tags = arg.tags || [];
-        this.modLoader = arg.modLoader || '-';
-        this.mod = arg.mod || '-';
-    }
+    id: long = -1; //UpdateRepository.counter++
+    publishDate: Date = new Date();
+    gameVersion: string = '-';
+    version: string = '-';
+    updateMessages: string[] = [];
+    releaseType: ReleaseType = 'release';
+    tags: string[] = [];
+    modLoader: ModLoader = 'forge';
+    mod: string = '-';
 }
+
+
+type Constructor<T> = new (...args: any[]) => T;
+
+export function createInstance<T>(cls: Constructor<T>, fields: Partial<T>): T {
+    const instance = new cls();
+
+    for (const key in fields) {
+        if (Object.prototype.hasOwnProperty.call(fields, key)) {
+            const typedKey = key as keyof T;
+            const value = fields[typedKey];
+
+            // Ensure runtime type safety
+            if (value !== undefined) {
+                instance[typedKey] = value as T[typeof typedKey];
+            }
+        }
+    }
+
+    return instance;
+}
+
+

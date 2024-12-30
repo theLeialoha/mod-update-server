@@ -1,7 +1,7 @@
 import { ModRepository } from "../repositories/ModRepository";
 import { UpdateRepository } from "../repositories/UpdateRepository";
 import { Mod, ModWithUpdateCount, ModWithoutModId } from "../types/dtos";
-import { ModEntity } from "../types/entities";
+import { ModEntity, createInstance } from "../types/entities";
 import { List, Optional } from "../types/java";
 
 
@@ -19,7 +19,7 @@ export function getMods(): List<Mod> {
  */
 export function addMod(mod: Mod): boolean  {
     if (doesModExist(mod.modID)) return false;
-    ModRepository.save(mod as ModEntity);
+    ModRepository.insertOne(createInstance(ModEntity, mod));
     return true;
 }
 
@@ -39,7 +39,7 @@ export function editMod(modID: string, mod: ModWithoutModId): boolean {
     modToUpdate.downloadURL = mod.downloadURL;
     modToUpdate.issueURL = mod.issueURL;
 
-    ModRepository.save(modToUpdate);
+    ModRepository.updateById((optionalMod as any)._id, modToUpdate);
     return true;
 }
 

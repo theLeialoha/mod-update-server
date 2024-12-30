@@ -1,29 +1,153 @@
 import { List, Optional } from "../types/java";
+import { MongoClient, Db, Collection, Document } from 'mongodb';
+import * as url from 'url';
 
-export class Repository<K, V> {
-    public counter: number = 0;
+interface Cache<T> {
+    [key: string]: T;
+}
 
-    save(arg0: K): any {
-        throw new Error("Method not implemented.");
+class BaseRepository<T> {
+    private static ready: boolean = false;
+    private static client: Promise<MongoClient>;
+    private static database: Promise<Db>;
+    private static counter: Collection;
+
+    protected cache: Cache<T> = {};
+    protected collection: Collection<T & Document>;
+    protected syncInterval: NodeJS.Timeout;
+
+    // Shared MongoClient instance across all repositories
+    constructor(private collectionName: string) {
+        if (BaseRepository.client == undefined)
+            BaseRepository.createClient();
+
+        // Wait for Database
+        BaseRepository.database.then(database => {
+            this.collection = database.collection<T & Document>(collectionName);
+            this.syncInterval = setInterval(() => this.loadData(), 30 * 1000); // Sync every 30 seconds
+            this.loadData();
+        });
     }
-    deleteById(id: string) {
-        throw new Error("Method not implemented.");
+
+    // Create the connection to MongoDB
+    private static createClient(): Promise<MongoClient> {
+        if (this.client != undefined) return this.client;
+
+        const password = process.env.DB_PASSWORD ? encodeURIComponent(process.env.DB_PASSWORD).replace(/%2F/g, '%252F') : undefined;
+        const auth = process.env.DB_USERNAME ? (process.env.DB_USERNAME + (password ? `:${password}` : '')) : undefined;
+
+        const clientUrl = url.format({
+            protocol: 'http', auth,
+            hostname: process.env.DB_HOSTNAME,
+            port: process.env.DB_PORT || 27017,
+        }).replace(/^http/i, process.env.DB_PROTOCOL || 'mongodb');
+
+        this.client = new MongoClient(clientUrl).connect();
+        this.database = this.client.then(client => client.db(process.env.DB_NAME));
+        this.database.then((database) => {
+            this.counter = database.collection('counters');
+            this.ready = true;
+        });
+
+        return this.client;
     }
-    existsById(id: string): boolean {
-        throw new Error("Method not implemented.");
+
+    protected async saveNextSequenceValue(): Promise<void> {
+        await BaseRepository.counter.findOneAndUpdate(
+            { collection: this.collectionName }, // Using the collection name as the sequence
+            { $inc: { sequence_value: 1 } }, // Increment the counter
+            { /** returnDocument: 'after', **/ upsert: true } // Create the counter if it doesn't exist
+        );
     }
-    findById(id: string): Optional<K> {
-        throw new Error("Method not implemented.");
+
+    // Load data from MongoDB into memory cache
+    private async loadData(): Promise<void> {
+        const data = await this.collection.find().toArray();
+        data.forEach((item) => this.cache[item['_id'].toString()] = (item as T) );
     }
-    findAll(): List<K> {
-        throw new Error("Method not implemented.");
+
+    // Close the client when done
+    public static close(): void {
+        this.client.then(client => {
+            clearInterval(this.prototype.syncInterval);
+            client.close();
+        });
     }
-    count(): number {
-        throw new Error("Method not implemented.");
+
+    get isReady() {
+        return BaseRepository.ready;
     }
 
 }
 
+// Example of extending the repository for a specific collection (e.g., Users)
+export class ManagedRepository<T> extends BaseRepository<T> {
+
+    private sequenceValue: number = 1;
+
+    // Save data to MongoDB and update cache
+    public insertOne(data: T): any {
+        const id = this.nextSequenceValue;
+        Object.defineProperty(data, '_id', { value: id, writable: false });
+        this.collection.insertOne(data as any);
+        this.cache[id.toString()] = data;
+        return data;
+    }
+
+    // Retrieve all data from cache
+    public findAll(): List<T> {
+        return Object.values(this.cache);
+    }
+
+    // Check if id exists in cache
+    public existsById(id: string): boolean {
+        return this.cache[id] != null;
+    }
+
+    // Retrieve data from cache (with fallback to DB)
+    public findById(id: string): Optional<T> {
+        return this.cache[id] || null;
+    }
+
+    // Retrieve data from cache (with fallback to DB)
+    public updateById(id: string, update: T): Optional<T> {
+        if (this.cache[id] == undefined) return null;
+
+        // We don't want to override the id
+        delete update['_id'];
+
+        for (const key in this.cache[id]) {
+            if (update[key] != undefined)
+                this.cache[id][key] = update[key];
+        }
+
+        this.collection.updateOne({ _id: id as any }, { $set: this.cache[id] as any });
+        return this.cache[id];
+    }
+
+    // Remove data from MongoDB and update cache
+    public async deleteById(id: string) {
+        delete this.cache[id];
+        await this.collection.deleteOne({ _id: id as any });
+    }
+
+    // Get count of entries from cache
+    public count(): number {
+        return this.findAll().length;
+    }
+
+    // // Add specific methods for users, e.g., find by username
+    // public async findByUsername(username: string): Promise<any | null> {
+    //     const user = await this.collection.findOne({ username });
+    //     return user;
+    // }
+
+
+    protected get nextSequenceValue() {
+        this.saveNextSequenceValue();
+        return this.sequenceValue++;
+    }
+}
 
 export class Pageable {
 
@@ -39,3 +163,27 @@ export class Pageable {
         return new Pageable(page, amount);
     }
 }
+
+// export class Repository {
+//     public counter: number = 0;
+
+//     save(entry: any): any {
+//         throw new Error("Method not implemented.");
+//     }
+//     deleteById(id: string) {
+//         throw new Error("Method not implemented.");
+//     }
+//     existsById(id: string): boolean {
+//         throw new Error("Method not implemented.");
+//     }
+//     findById(id: string): Optional<any> {
+//         throw new Error("Method not implemented.");
+//     }
+//     findAll(): List<any> {
+//         throw new Error("Method not implemented.");
+//     }
+//     count(): number {
+//         throw new Error("Method not implemented.");
+//     }
+
+// }

@@ -16,24 +16,27 @@ This can be used directly for the [Forge Update Checker](https://docs.minecraftf
 
 ## Requests
 
-| Method   | Path                                | Description                                                                                              |
-|----------|-------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `GET`    | `/mods`                             | A list of all mods.                                                                                      |
+| Method   | Path                               | Description                                                                                              |
+|----------|------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `GET`    | `/mods`                            | A list of all mods.                                                                                      |
 | `GET`    | `/mods/MOD_ID`                     | A specific mod by its mod ID.                                                                            |
-| `GET`    | `/updates?amount=16&page=0`         | All updates for all mods. Query parameters: `amount` for the update count per page, `page` for the page. |
+| `GET`    | `/updates?amount=16&page=0`        | All updates for all mods. Query parameters: `amount` for the update count per page, `page` for the page. |
 | `GET`    | `/updates/MOD_ID?amount=16&page=0` | All updates for a mod. Query parameters: `amount` for the update count per page, `page` for the page.    |
 | `GET`    | `/updates/MOD_ID/UPDATE_ID`        | A specific update.                                                                                       |
 | `POST`   | `/updates/MOD_ID`                  | Adds a new update. Requires an apikey in the header. See [Update](#update).                              |
 | `POST`   | `/updates/MOD_ID/UPDATE_ID`        | Updates an update.                                                                                       |
 | `DELETE` | `/updates/MOD_ID/UPDATE_ID`        | Deletes an update. Requires an apikey in the header.                                                     |
 | `DELETE` | `/mods/MOD_ID`                     | Deletes a mod. Requires an apikey in the header.                                                         |
-| `POST`   | `/mods/add`                         | Adds a new mod. Requires an apikey in the header. See [Mod](#mod).                                       |
+| `POST`   | `/mods/add`                        | Adds a new mod. Requires an apikey in the header. See [Mod](#mod).                                       |
 | `POST`   | `/mods/edit/MOD_ID`                | Edits an existing mod. Requires an apikey in the header. See [Mod](#mod).                                |
 | `GET`    | `/forge/MOD_ID`                    | The Forge update check format.                                                                           |
+| `GET`    | `/neoforge/MOD_ID`                 | The NeoForged update check format.                                                                       |
 | `GET`    | `/check/LOADER/MOD_ID`             | A general purpose update check format.                                                                   |
-| `GET`    | `/apikeys`                          | A list of all API keys.                                                                                  |
-| `POST`   | `/apikeys/add`                      | Adds a new API keys. See [ApiKey](#apikey).                                                              |
-| `DELETE` | `/apikeys/APIKEY`                   | Removes an API keys.                                                                                     |
+| `GET`    | `/apikeys`                         | A list of all API keys.                                                                                  |
+| `POST`   | `/apikeys/add`                     | Adds a new API keys. See [ApiKey](#apikey).                                                              |
+| `DELETE` | `/apikeys/APIKEY`                  | Removes an API keys.                                                                                     |
+| `GET`    | `/backup`                          | Creates a backup of the mods                                                                             |
+| `POST`   | `/backup/restore`                  | Restores the backup of the mods                                                                          |
 
 **Example Update**
 
@@ -126,10 +129,11 @@ and the web interface is usually available at port 3000 (If not already in use).
 
 | Variable         | Description                                                     | Default Value |
 |------------------|-----------------------------------------------------------------|---------------|
-| `DB_IP`          | The IP of the MongoDB database                                  | ` `           |
-| `DB_PORT`        | The port of the MongoDB database                                | ` `           |
+| `DB_PROTOCOL`    | The Protocol of the MongoDB database                            | `mongodb`     |
+| `DB_HOSTNAME`    | The IP / Hostname of the MongoDB database                       | ` `           |
+| `DB_PORT`        | The port of the MongoDB database                                | `27017`       |
 | `DB_NAME`        | The database name                                               | ` `           |
-| `DB_USER`        | The database username                                           | ` `           |
+| `DB_USERNAME`    | The database username                                           | ` `           |
 | `DB_PASSWORD`    | The database password                                           | ` `           |
 | `PORT`           | The webserver port                                              | `8088`        |
 | `MASTER_KEY`     | The master apiKey (e.g. `62387f34-7678-4737-bfc4-2cb600337541`) | ` `           |

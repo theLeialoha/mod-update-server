@@ -2,7 +2,7 @@ import { ModRepository } from "../repositories/ModRepository";
 import { Pageable } from "../repositories/Repository";
 import { UpdateRepository } from "../repositories/UpdateRepository";
 import { Mod, Update, UpdateWithMod, UpdateWithoutIdAndMod } from "../types/dtos";
-import { ModAndUpdate, ModEntity, UpdateEntity } from "../types/entities";
+import { ModAndUpdate, ModEntity, UpdateEntity, createInstance } from "../types/entities";
 import { List, Optional, int, long } from "../types/java";
 
 export function getUpdates(amount: int, page: int): List<UpdateWithMod> {
@@ -38,9 +38,8 @@ export function addUpdate(modID: string, update: UpdateWithoutIdAndMod): boolean
     const optionalMod: Optional<ModEntity> = ModRepository.findById(modID);
     if (optionalMod == null) return false;
     const mod: ModEntity = optionalMod;
-    const updateEntity: UpdateEntity = new UpdateEntity(update);
-    updateEntity.mod = mod.modID;
-    UpdateRepository.save(updateEntity);
+    Object.defineProperty(update, "mod", { value: mod.modID });
+    UpdateRepository.insertOne(createInstance(UpdateEntity, update));
     return true;
 }
 
@@ -85,7 +84,7 @@ export function editUpdate(modID: string, updateID: long, update: UpdateWithoutI
     updateEntity.releaseType = update.releaseType;
     updateEntity.tags = update.tags;
     updateEntity.modLoader = update.modLoader;
-    UpdateRepository.save(updateEntity);
+    UpdateRepository.updateById((updateEntity as any)._id, updateEntity);
 }
 
 /**
@@ -101,5 +100,5 @@ export function deleteUpdate(modID: string, updateID: long): void {
     const optionalUpdate: Optional<UpdateEntity> = UpdateRepository.findFirstByModAndId(mod.modID, updateID);
     if (optionalUpdate == null) throw new Error("Update does not exist");
 
-    UpdateRepository.delete(optionalUpdate);
+    UpdateRepository.deleteById((optionalUpdate as any)._id);
 }
