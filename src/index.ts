@@ -14,7 +14,8 @@ import { resolve } from 'path';
 const app = express();
 app.use(express.json());
 
-const PORT = process.env.port || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
+const PORT = parseInt(process.env.PORT) || 3000;
 
 // app.use((req: Request, res: Response, next: NextFunction) => {
 //     console.log('%s %s', req.method.toUpperCase(), req.url);
@@ -43,7 +44,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
     console.log(`Server started on port ${PORT}`);
 });
 

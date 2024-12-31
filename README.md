@@ -135,6 +135,7 @@ and the web interface is usually available at port 3000 (If not already in use).
 | `DB_NAME`        | The database name                                               | ` `           |
 | `DB_USERNAME`    | The database username                                           | ` `           |
 | `DB_PASSWORD`    | The database password                                           | ` `           |
+| `HOST`           | The webserver hostname                                          | `0.0.0.0`     |
 | `PORT`           | The webserver port                                              | `8080`        |
 | `MASTER_KEY`     | The master apiKey (e.g. `62387f34-7678-4737-bfc4-2cb600337541`) | ` `           |
 | `LOGIN_USERNAME` | The username for the web UI login                               | `admin`       |
