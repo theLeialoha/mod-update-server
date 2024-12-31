@@ -42,6 +42,8 @@ class BaseRepository<T> {
             port: process.env.DB_PORT,
         }).replace(/^http/i, process.env.DB_PROTOCOL || 'mongodb');
 
+        console.log(`Connecting to: ${clientUrl}`);
+
         this.client = new MongoClient(clientUrl).connect();
         this.database = this.client.then(client => client.db(process.env.DB_NAME));
         this.database.then((database) => {
