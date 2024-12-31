@@ -1,8 +1,9 @@
 import { ModRepository } from "../repositories/ModRepository";
 import { Pageable } from "../repositories/Repository";
 import { UpdateRepository } from "../repositories/UpdateRepository";
-import { Mod, Update, UpdateWithMod, UpdateWithoutIdAndMod } from "../types/dtos";
+import { Mod, Update, UpdateWithMod, UpdateWithoutId, UpdateWithoutIdAndMod } from "../types/dtos";
 import { ModAndUpdate, ModEntity, UpdateEntity, createInstance } from "../types/entities";
+import { HttpStatus, ResponseStatusException } from "../types/errors";
 import { List, Optional, int, long } from "../types/java";
 
 export function getUpdates(amount: int, page: int): List<UpdateWithMod> {
@@ -38,8 +39,9 @@ export function addUpdate(modID: string, update: UpdateWithoutIdAndMod): boolean
     const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
     if (optionalMod == null) return false;
     const mod: ModEntity = optionalMod;
-    Object.defineProperty(update, "mod", { value: mod.modID });
-    UpdateRepository.insertOne(createInstance(UpdateEntity, update));
+    const createdUpdate: UpdateWithoutId = update as UpdateWithoutId;
+    createdUpdate.mod = mod.modID;
+    UpdateRepository.insertOne(createInstance(UpdateEntity, createdUpdate));
     return true;
 }
 
@@ -52,11 +54,11 @@ export function addUpdate(modID: string, update: UpdateWithoutIdAndMod): boolean
  */
 export function getUpdate(modID: string, updateID: long): Update {
     const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
-    if (optionalMod == null) throw new Error("Mod does not exist");
+    if (optionalMod == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
 
     const mod: ModEntity = optionalMod;
     const optionalUpdate: Optional<UpdateEntity> = UpdateRepository.findFirstByModAndId(mod.modID, updateID);
-    if (optionalUpdate == null) throw new Error("Update does not exist");
+    if (optionalUpdate == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Update does not exist");
 
     return optionalUpdate as any as Update;
 }
@@ -69,12 +71,12 @@ export function getUpdate(modID: string, updateID: long): Update {
  */
 export function editUpdate(modID: string, updateID: long, update: UpdateWithoutIdAndMod): void {
     const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
-    if (optionalMod == null) throw new Error("Mod does not exist");
+    if (optionalMod == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
 
     const mod: ModEntity = optionalMod;
     const optionalUpdate: Optional<UpdateEntity> = UpdateRepository.findFirstByModAndId(mod.modID, updateID);
 
-    if (optionalUpdate == null) throw new Error("Update does not exist");
+    if (optionalUpdate == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Update does not exist");
     const updateEntity: UpdateEntity = optionalUpdate;
 
     updateEntity.publishDate = update.publishDate;
@@ -94,11 +96,11 @@ export function editUpdate(modID: string, updateID: long, update: UpdateWithoutI
  */
 export function deleteUpdate(modID: string, updateID: long): void {
     const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
-    if (optionalMod == null) throw new Error("Mod does not exist");
+    if (optionalMod == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
 
     const mod: ModEntity = optionalMod;
     const optionalUpdate: Optional<UpdateEntity> = UpdateRepository.findFirstByModAndId(mod.modID, updateID);
-    if (optionalUpdate == null) throw new Error("Update does not exist");
+    if (optionalUpdate == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Update does not exist");
 
     UpdateRepository.deleteById((optionalUpdate as any)._id);
 }

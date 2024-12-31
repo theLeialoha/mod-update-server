@@ -3,12 +3,11 @@ const ROUTER = Router();
 
 import * as ModService from "../services/modService";
 import * as UpdateCheckService from "../services/updateCheckService";
+import { HttpStatus, ResponseStatusException } from "../types/errors";
 
 function modUpdates(loader: string, modId: string, res: Response): void {
-    try {
-        if (!ModService.doesModExist(modId)) res.status(404).send("Mod does not exist");
-        else res.status(200).send(UpdateCheckService.modUpdatesForLoader(loader, modId)); 
-    } catch (e) { res.status(400).send(e); }
+    if (!ModService.doesModExist(modId)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
+    else res.status(200).json(UpdateCheckService.modUpdatesForLoader(loader, modId)); 
 }
 
 ROUTER.get('/forge/:modId', (req: Request, res: Response) => {

@@ -88,8 +88,9 @@ export class ManagedRepository<T> extends BaseRepository<T> {
     // Save data to MongoDB and update cache
     public insertOne(data: T): any {
         const id = this.nextSequenceValue;
-        Object.defineProperty(data, '_id', { value: id, writable: false });
-        this.collection.insertOne(data as any);
+        const createdData: any = data;
+        createdData._id = id;
+        this.collection.insertOne(createdData);
         this.cache[id.toString()] = data;
         return data;
     }

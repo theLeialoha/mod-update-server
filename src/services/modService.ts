@@ -2,6 +2,7 @@ import { ModRepository } from "../repositories/ModRepository";
 import { UpdateRepository } from "../repositories/UpdateRepository";
 import { Mod, ModWithUpdateCount, ModWithoutModId } from "../types/dtos";
 import { ModEntity, createInstance } from "../types/entities";
+import { HttpStatus, ResponseStatusException } from "../types/errors";
 import { List, Optional } from "../types/java";
 
 
@@ -53,7 +54,7 @@ export function getMod(modID: string): Optional<ModWithUpdateCount> {
  */
 export function deleteMod(modID: string): void {
     var optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
-    if (optionalMod == null) throw new Error("Mod does not exist");
+    if (optionalMod == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
 
     var mod: ModEntity = optionalMod;
 

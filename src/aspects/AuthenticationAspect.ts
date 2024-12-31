@@ -4,6 +4,7 @@ import { ApiKey } from "../types/dtos";
 
 import * as ApiKeyService from "../services/apiKeyService";
 import { Request } from "express";
+import { HttpStatus, ResponseStatusException } from "../types/errors";
 
 // Make sure we only get the key (if it's a single value)
 function getApiKey(req: Request): Optional<UUID> {
@@ -15,22 +16,28 @@ function getApiKey(req: Request): Optional<UUID> {
 export function validateHeaders(req: Request): void {
     const attributes: HashMap<string, any> = req.params;
     const modID: string = attributes["modID"] || "*";
-    
+
     if (!hasPermission(getApiKey(req), modID))
-        throw new Error("Insufficient permissions");
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Insufficient permissions");
+}
+
+function validMasterKey(apikey: UUID): boolean {
+    if (getMasterKey() == null) return false;
+    return apikey == getMasterKey()
+        && validateUUID(getMasterKey() as string);
 }
 
 export function validateHeadersMaster(req: Request): void {
     const apikey: UUID = parseApiKey(getApiKey(req));
-    if (apikey != getMasterKey() || !validateUUID(getMasterKey() || "")) throw new Error("Insufficient permissions");
+    if (!validMasterKey(apikey)) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Insufficient permissions");
 }
 
-export function hasPermission(key: Optional<string>, modID: string): boolean {
+export function hasPermission(key: Optional<UUID>, modID: string): boolean {
     const uuid: UUID = parseApiKey(key);
-    if (uuid == getMasterKey() && validateUUID(getMasterKey() || "")) return true;
+    if (validMasterKey(uuid)) return true;
 
     const apikey: Optional<ApiKey> = ApiKeyService.getApiKey(uuid);
-    if (apikey == null) throw new Error("Invalid API key");
+    if (apikey == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API key");
 
     const apiKey: ApiKey = apikey;
     return apiKey.mods.reduce((success, s) => ['*', modID].includes(s) || success, false);
@@ -43,8 +50,8 @@ function getMasterKey(): Optional<UUID> {
 }
 
 function parseApiKey(apiKey: Optional<string>): UUID {
-    if (apiKey == null) throw new Error("No API key provided");
-    if (!validateUUID(apiKey)) throw new Error("Invalid API key");
+    if (apiKey == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No API key provided");
+    if (!validateUUID(apiKey)) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API key");
     return apiKey;
 }
 

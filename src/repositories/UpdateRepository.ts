@@ -13,13 +13,13 @@ class UpdateRepositoryImp extends ManagedRepository<any> {
         return this.findAll().filter(update => update.mod == modId)
             .map(update => createNullableInstance(UpdateEntity, update))
             .filter(update => update != null).map(update => update as UpdateEntity)
-            .sort((a, b) => b.publishDate.getTime() - a.publishDate.getTime())
+            .sort((a, b) => b.date.getTime() - a.date.getTime())
             .slice(pageable.page * pageable.amount, (pageable.page + 1) * pageable.amount);
     }
 
     public findFirstByModAndId(modId: string, id: long): Optional<UpdateEntity> {
         if (!ModRepository.existsByModId(modId)) return null;
-        const update = this.findAll().find(update => update.mod == modId && update.id == id);
+        const update = this.findAll().find(update => update.mod == modId && update._id == id);
         return createNullableInstance(UpdateEntity, update);
     }
 
@@ -32,7 +32,7 @@ class UpdateRepositoryImp extends ManagedRepository<any> {
                     if (mod == null || update == null) return null;
                     return createInstance(ModAndUpdate, { update, mod })
                 }).filter(update => update != null).map(update => update as ModAndUpdate)
-                .sort((a, b) => b.update.publishDate.getTime() - a.update.publishDate.getTime());
+                .sort((a, b) => b.update.date.getTime() - a.update.date.getTime());
             this.modWithUpdates.lastUpdate = Date.now();
         }
         return this.modWithUpdates.value;
@@ -47,7 +47,7 @@ class UpdateRepositoryImp extends ManagedRepository<any> {
         return this.findAll().filter(update => update.mod == mod)
             .map(update => createNullableInstance(UpdateEntity, update))
             .filter(update => update != null).map(update => update as UpdateEntity)
-            .sort((a, b) => b.publishDate.getTime() - a.publishDate.getTime());
+            .sort((a, b) => b.date.getTime() - a.date.getTime());
     }
 
     public removeAllByMod(modId: string) {
@@ -61,7 +61,7 @@ class UpdateRepositoryImp extends ManagedRepository<any> {
             this.latestOrRecommendedUpdates.lastUpdate = Date.now();
             this.latestOrRecommendedUpdates.value = this.findAll().map(update => createNullableInstance(UpdateEntity, update))
                 .filter(update => update != null).map(update => update as UpdateEntity)
-                .sort((a, b) => b.publishDate.getTime() - a.publishDate.getTime())
+                .sort((a, b) => b.date.getTime() - a.date.getTime())
                 .filter((v, i, a) => {
                     if (v.tags.includes('recommended')) return v;
                     return a.filter(c => c.modLoader == v.modLoader).filter(c => c.mod == v.mod)

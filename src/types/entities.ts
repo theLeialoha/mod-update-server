@@ -42,8 +42,8 @@ export class ModEntity {
 }
 
 export class UpdateEntity {
-    id: long = -1; //UpdateRepository.counter++
-    publishDate: Date = new Date();
+    _id: long = -1; //UpdateRepository.counter++
+    publishDate: string | Date = new Date();
     gameVersion: string = '-';
     version: string = '-';
     updateMessages: string[] = [];
@@ -53,6 +53,11 @@ export class UpdateEntity {
     mod: string = '-';
 
     readonly toString = () => JSON.stringify(this);
+    get date(): Date {
+        if (typeof this.publishDate == "string")
+            return new Date(this.publishDate);
+        return this.publishDate;
+    }
 }
 
 

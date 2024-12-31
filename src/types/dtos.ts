@@ -15,7 +15,7 @@ export type ApiKey = {
 }
 
 export type Backup = {
-    backupDate: Date,
+    backupDate: string | Date,
     mods: List<ModWithUpdates>,
 }
 
@@ -45,7 +45,7 @@ export type ModWithUpdateCount = Mod & {
 }
 
 export type Update = UpdateWithoutIdAndMod & {
-    id: long,
+    _id: long,
     mod: string,
 }
 
@@ -67,7 +67,7 @@ export type Version = {
 }
 
 export type UpdateWithMod = UpdateWithoutIdAndMod & {
-    id: long;
+    _id: long;
     mod: Mod;
 }
 
@@ -76,7 +76,7 @@ export type UpdateWithoutId = UpdateWithoutIdAndMod & {
 }
 
 export type UpdateWithoutIdAndMod = {
-    publishDate: Date;
+    publishDate: string | Date;
     gameVersion: string;
     version: string;
     updateMessages: string[];

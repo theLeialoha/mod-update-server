@@ -2,11 +2,12 @@ import { ModRepository } from "../repositories/ModRepository";
 import { UpdateRepository } from "../repositories/UpdateRepository";
 import { UpdateCheckResponse, VersionUpdateInfo } from "../types/dtos";
 import { ModEntity, UpdateEntity } from "../types/entities";
+import { HttpStatus, ResponseStatusException } from "../types/errors";
 import { List, Optional } from "../types/java";
 
 export function modUpdatesForLoader(loader: string, modID: string): UpdateCheckResponse {
     var optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
-    if (optionalMod == null) throw new Error("Mod does not exist");
+    if (optionalMod == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
 
     // Counter.builder("requests.update_check.cache_miss").tag("loader", loader).tag("modID", modID).register(meterRegistry).increment();
 

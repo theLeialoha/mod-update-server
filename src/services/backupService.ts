@@ -1,6 +1,6 @@
 import { ModRepository } from "../repositories/ModRepository";
 import { UpdateRepository } from "../repositories/UpdateRepository";
-import { Backup, ModWithUpdates, UpdateWithoutIdAndMod } from "../types/dtos";
+import { Backup, ModWithUpdates, UpdateWithoutId, UpdateWithoutIdAndMod } from "../types/dtos";
 import { ModEntity, UpdateEntity, createInstance } from "../types/entities";
 import { List } from "../types/java";
 
@@ -26,8 +26,9 @@ export function restore(backup: Backup): boolean {
     for (const mod of backup.mods) {
         const modEntity = ModRepository.insertOne(createInstance(ModEntity, mod));
         for (const update of mod.updates) {
-            Object.defineProperty(update, "mod", { value: modEntity.modID });
-            UpdateRepository.insertOne(createInstance(UpdateEntity, update));
+            const createdUpdate = update as UpdateWithoutId;
+            createdUpdate.mod = modEntity.modID;
+            UpdateRepository.insertOne(createInstance(UpdateEntity, createdUpdate));
         }
     }
 
