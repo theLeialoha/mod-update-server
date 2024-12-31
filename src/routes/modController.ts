@@ -4,8 +4,8 @@ const ROUTER = Router();
 
 import * as ModService from "../services/modService";
 import { Optional } from "../types/java";
-import { ModWithUpdateCount } from "../types/dtos";
 import { HttpStatus, ResponseStatusException } from "../types/errors";
+import { ModAndUpdateCount } from "../types/entities";
 
 /**
  * A list of all mods.
@@ -34,7 +34,7 @@ ROUTER.post('/mods/edit/:modId', validateApiKey, (req: Request, res: Response) =
  * A specific mod by its mod ID.
  */ 
 ROUTER.get('/:modId', (req: Request, res: Response) => {
-    const optionalMod: Optional<ModWithUpdateCount> = ModService.getMod(req.params.modId);
+    const optionalMod: Optional<ModAndUpdateCount> = ModService.getMod(req.params.modId);
     if (optionalMod == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
     else res.status(200).json(optionalMod);
 });

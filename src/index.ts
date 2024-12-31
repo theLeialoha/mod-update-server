@@ -1,5 +1,6 @@
 // index.ts
-import express, { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import * as express from 'express';
 
 import apiKeyRoute from './routes/apiKeyController';
 import backupRoute from './routes/backupController';

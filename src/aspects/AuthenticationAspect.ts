@@ -1,4 +1,4 @@
-import validateUUID from "uuid-validate";
+import * as validateUUID from "uuid-validate";
 import { HashMap, Optional, UUID } from "../types/java";
 import { ApiKey } from "../types/dtos";
 

@@ -1,7 +1,7 @@
 import { ModRepository } from "../repositories/ModRepository";
 import { UpdateRepository } from "../repositories/UpdateRepository";
 import { Mod, ModWithUpdateCount, ModWithoutModId } from "../types/dtos";
-import { ModEntity, createInstance } from "../types/entities";
+import { ModAndUpdateCount, ModEntity, createInstance } from "../types/entities";
 import { HttpStatus, ResponseStatusException } from "../types/errors";
 import { List, Optional } from "../types/java";
 
@@ -44,8 +44,8 @@ export function editMod(modID: string, mod: ModWithoutModId): boolean {
     return true;
 }
 
-export function getMod(modID: string): Optional<ModWithUpdateCount> {
-    return ModRepository.getModWithUpdateCount(modID) as Optional<ModWithUpdateCount>;
+export function getMod(modID: string): Optional<ModAndUpdateCount> {
+    return ModRepository.getModWithUpdateCount(modID);
 }
 
 /**
