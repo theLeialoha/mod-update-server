@@ -14,8 +14,8 @@ export function getApiKey(apiKey: UUID): ApiKey {
 }
 
 export function addApiKey(mods: string[]): ApiKey {
-    if (mods == undefined || !Array.isArray(mods)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mods list should be an list of strings");
-    if (mods.find(v => typeof v == "string")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mods list should be an list of strings");
+    if (mods == undefined || !Array.isArray(mods)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Body should be a list of mods as strings");
+    if (mods.find(v => typeof v != "string")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Body should be a list of mods as strings");
     return ApiKeyRepository.insertOne(createInstance(ApiKeyEntity, { mods })) as ApiKey;
 }
 

@@ -4,7 +4,7 @@ const ROUTER = Router();
 
 import * as ModService from "../services/modService";
 import { Optional } from "../types/java";
-import { HttpStatus, ResponseStatusException } from "../types/errors";
+import { HttpStatus, PassErrorToParent, ResponseStatusException } from "../types/errors";
 import { ModAndUpdateCount } from "../types/entities";
 
 /**
@@ -46,5 +46,7 @@ ROUTER.delete('/:modId', validateApiKey, (req: Request, res: Response) => {
     ModService.deleteMod(req.params.modId);
     res.status(200).json({ status: 200, message: "OK" });
 });
+
+ROUTER.use(PassErrorToParent);
 
 export default ROUTER;

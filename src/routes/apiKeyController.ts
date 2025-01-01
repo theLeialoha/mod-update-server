@@ -3,7 +3,7 @@ const ROUTER = Router();
 
 import * as ApiKeyService from "../services/apiKeyService";
 import { validateMasterApiKey } from "./middleware/apiKey";
-import { HttpStatus, ResponseStatusException } from "../types/errors";
+import { HttpStatus, PassErrorToParent, ResponseStatusException } from "../types/errors";
 
 
 ROUTER.get('/', validateMasterApiKey, (req: Request, res: Response) => {
@@ -19,6 +19,8 @@ ROUTER.delete('/:apiKey', validateMasterApiKey, (req: Request, res: Response) =>
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ApiKey not found");
     else res.status(200).json({ status: 200, message: "OK" });
 });
+
+ROUTER.use(PassErrorToParent);
 
 export default ROUTER;
 

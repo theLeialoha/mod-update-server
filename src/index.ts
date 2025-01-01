@@ -34,8 +34,8 @@ app.use('/check', updateCheckRoute);
 app.use('/updates', updateRoute);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    if (err instanceof ResponseStatusException) {
-        const e: ResponseStatusException = err;
+    if (err.name == "ResponseStatusException") {
+        const e: ResponseStatusException = err as ResponseStatusException;
         res.status(e.status).send({ statusCode: e.status, message: e.message });
         console.error({ statusCode: e.status, message: e.message });
     } else {

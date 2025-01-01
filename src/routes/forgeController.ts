@@ -3,7 +3,7 @@ const ROUTER = Router();
 
 import * as ModService from "../services/modService";
 import * as ForgeUpdateService from "../services/forgeUpdateService";
-import { HttpStatus, ResponseStatusException } from "../types/errors";
+import { HttpStatus, PassErrorToParent, ResponseStatusException } from "../types/errors";
 
 function modUpdatesForLoader(loader: string, modId: string, res: Response): void {
     if (!ModService.doesModExist(modId)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
@@ -26,6 +26,8 @@ ROUTER.get('/neoforge/:modId', (req: Request, res: Response) => {
 // ROUTER.get('/quilt/:modId', (req: Request, res: Response) => {
 //     modUpdates("quilt", req.params.modId, res);
 // });
+
+ROUTER.use(PassErrorToParent);
 
 export default ROUTER;
 

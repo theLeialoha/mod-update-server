@@ -5,7 +5,7 @@ const ROUTER = Router();
 import * as UpdateService from "../services/updateService";
 import { List, Optional } from "../types/java";
 import { Update } from "../types/dtos";
-import { HttpStatus, ResponseStatusException } from "../types/errors";
+import { HttpStatus, PassErrorToParent, ResponseStatusException } from "../types/errors";
 
 // Make sure we only get the number (if it's a single value)
 function parseNumber(query: any, defaultValue: number = 0): number {
@@ -69,6 +69,7 @@ ROUTER.delete('/:modId', validateApiKey, (req: Request, res: Response) => {
     res.status(200).json({ status: 200, message: "OK" });
 });
 
+ROUTER.use(PassErrorToParent);
 
 export default ROUTER;
 

@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from "express";
 
 export class ResponseStatusException extends Error {
     public readonly name: string = "ResponseStatusException";
@@ -6,6 +7,10 @@ export class ResponseStatusException extends Error {
         super(message);
     }
 }
+
+export function PassErrorToParent(err: Error, req: Request, res: Response, next: NextFunction) {
+    next(err)
+};
 
 export enum HttpStatus {
     CONTINUE = 100,
