@@ -25,7 +25,7 @@ ROUTER.post('/add', validateApiKey, (req: Request, res: Response) => {
 /**
  * Edits an existing mod. Requires an apikey in the header. See [Mod](#mod).
  */
-ROUTER.post('/mods/edit/:modId', validateApiKey, (req: Request, res: Response) => {
+ROUTER.post('/edit/:modId', validateApiKey, (req: Request, res: Response) => {
     if (!ModService.editMod(req.params.modId, req.body)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
     else res.status(200).json({ status: 200, message: "OK" });
 });

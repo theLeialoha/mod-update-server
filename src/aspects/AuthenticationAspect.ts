@@ -14,8 +14,10 @@ function getApiKey(req: Request): Optional<UUID> {
 }
 
 export function validateHeaders(req: Request): void {
+    const allowBody = req.baseUrl == "/mods/add";
     const attributes: HashMap<string, any> = req.params;
-    const modID: string = attributes["modID"] || "*";
+    const body: HashMap<string, any> = allowBody ? req.body : {};
+    const modID: string = attributes["modId"] || body["modID"] || "*";
 
     if (!hasPermission(getApiKey(req), modID))
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Insufficient permissions");
