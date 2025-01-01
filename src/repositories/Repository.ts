@@ -8,16 +8,16 @@ interface Cache<T> {
 
 class BaseRepository<T> {
     private static ready: boolean = false;
-    private static client: Promise<MongoClient>;
-    private static database: Promise<Db>;
-    private static counter: Collection;
+    protected static client: Promise<MongoClient>;
+    protected static database: Promise<Db>;
+    protected static counter: Collection;
 
     protected cache: Cache<T> = {};
     protected collection!: Collection<T & Document>;
     protected syncInterval!: NodeJS.Timeout;
 
     // Shared MongoClient instance across all repositories
-    constructor(private collectionName: string) {
+    constructor(protected collectionName: string) {
         if (BaseRepository.client == undefined)
             BaseRepository.createClient();
 
@@ -85,7 +85,16 @@ class BaseRepository<T> {
 // Example of extending the repository for a specific collection (e.g., Users)
 export class ManagedRepository<T> extends BaseRepository<T> {
 
-    private sequenceValue: number = 1;
+    private sequenceValue: number = 0;
+
+    constructor(collectionName: string) {
+        super(collectionName);
+        
+        ManagedRepository.database.then(() => {
+            ManagedRepository.counter.findOne({ collection: this.collectionName })
+                .then(value => value ? this.sequenceValue = value.sequence_value : null);
+        });
+    }
 
     // Save data to MongoDB and update cache
     public insertOne(data: T): any {

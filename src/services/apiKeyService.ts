@@ -3,6 +3,7 @@ import { ApiKey } from "../types/dtos";
 
 import { ApiKeyRepository } from "../repositories/ApiKeyRepository";
 import { ApiKeyEntity, createInstance } from "../types/entities";
+import { HttpStatus, ResponseStatusException } from "../types/errors";
 
 export function getApiKeys(): List<ApiKey> {
     return ApiKeyRepository.findAll().map(apiKeyEntity => apiKeyEntity as ApiKey);
@@ -13,6 +14,8 @@ export function getApiKey(apiKey: UUID): ApiKey {
 }
 
 export function addApiKey(mods: string[]): ApiKey {
+    if (mods == undefined || !Array.isArray(mods)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mods list should be an list of strings");
+    if (mods.find(v => typeof v == "string")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mods list should be an list of strings");
     return ApiKeyRepository.insertOne(createInstance(ApiKeyEntity, { mods })) as ApiKey;
 }
 
