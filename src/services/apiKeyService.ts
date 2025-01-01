@@ -1,4 +1,4 @@
-import { List, UUID } from "../types/java";
+import { List, Optional, UUID } from "../types/java";
 import { ApiKey } from "../types/dtos";
 
 import { ApiKeyRepository } from "../repositories/ApiKeyRepository";
@@ -9,8 +9,8 @@ export function getApiKeys(): List<ApiKey> {
     return ApiKeyRepository.findAll().map(apiKeyEntity => apiKeyEntity as ApiKey);
 }
 
-export function getApiKey(apiKey: UUID): ApiKey {
-    return ApiKeyRepository.findById(apiKey) as ApiKey;
+export function getApiKey(apiKey: UUID): Optional<ApiKey> {
+    return ApiKeyRepository.findAll().find(key => key.apiKey == apiKey);
 }
 
 export function addApiKey(mods: string[]): ApiKey {
