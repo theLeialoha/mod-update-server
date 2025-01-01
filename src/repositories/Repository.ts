@@ -85,7 +85,7 @@ class BaseRepository<T> {
 // Example of extending the repository for a specific collection (e.g., Users)
 export class ManagedRepository<T> extends BaseRepository<T> {
 
-    private sequenceValue: number = 0;
+    private sequenceValue: number = 1;
 
     constructor(collectionName: string) {
         super(collectionName);
