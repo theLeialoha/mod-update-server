@@ -64,7 +64,7 @@ ROUTER.post('/:modId/:updateId', validateApiKey, (req: Request, res: Response) =
 
 // Deletes an update. Requires an apikey in the header.
 // (DELETE) /updates/MOD_ID/UPDATE_ID
-ROUTER.delete('/:modId', validateApiKey, (req: Request, res: Response) => {
+ROUTER.delete('/:modId/:updateId', validateApiKey, (req: Request, res: Response) => {
     UpdateService.deleteUpdate(req.params.modId, parseNumber(req.params.updateId));
     res.status(200).json({ status: 200, message: "OK" });
 });
