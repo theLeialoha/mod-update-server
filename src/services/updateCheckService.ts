@@ -1,37 +1,32 @@
-import { ModRepository } from "../repositories/ModRepository";
-import { UpdateRepository } from "../repositories/UpdateRepository";
+import { IMod, IModUpdate } from "../database";
+import { findByModId } from "../repositories/ModRepository";
+import { getLatestUpdateEntries, getRecommendedUpdateEntries } from "../repositories/UpdateRepository";
 import { UpdateCheckResponse, VersionUpdateInfo } from "../types/dtos";
-import { ModEntity, UpdateEntity } from "../types/entities";
 import { HttpStatus, ResponseStatusException } from "../types/errors";
-import { List, Optional } from "../types/java";
 
-export function modUpdatesForLoader(loader: string, modID: string): UpdateCheckResponse {
-    var optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
-    if (optionalMod == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
+export async function modUpdatesForLoader(loader: string, modID: string): Promise<UpdateCheckResponse> {
 
-    // Counter.builder("requests.update_check.cache_miss").tag("loader", loader).tag("modID", modID).register(meterRegistry).increment();
-
-    var mod: ModEntity = optionalMod;
+    const mod: IMod = await findByModId(modID);
+    if (mod == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Mod does not exist");
 
     var response: UpdateCheckResponse = {
         homepage: mod.websiteURL,
         versions: {}
     };
 
-    var latest: List<UpdateEntity> = UpdateRepository.getLatestUpdateEntries(mod.modID, loader);
-    var recommended: List<UpdateEntity> = UpdateRepository.getRecommendedUpdateEntries(mod.modID, loader);
-
+    var latest: IModUpdate[] = await getLatestUpdateEntries(mod.modID, loader);
+    var recommended: IModUpdate[] = await getRecommendedUpdateEntries(mod.modID, loader);
+    
     for (const entry of latest) {
         var versionUpdateInfo: VersionUpdateInfo = {
             latest: { version: entry.version, changelog: entry.updateMessages, downloadLinks: [] },
-            recommended: { version: '', changelog: [], downloadLinks: [] }
+            recommended: { version: entry.version, changelog: entry.updateMessages, downloadLinks: [] }
         };
         response.versions[entry.gameVersion] = versionUpdateInfo;
     }
 
     for (const entry of recommended) {
         var info: VersionUpdateInfo = response.versions[entry.gameVersion];
-        if (info == null) continue;
         info.recommended = { version: entry.version, changelog: entry.updateMessages, downloadLinks: [] };
     }
 

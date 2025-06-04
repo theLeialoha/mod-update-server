@@ -14,11 +14,6 @@ export type ApiKey = {
     mods: string[],
 }
 
-export type Backup = {
-    backupDate: string | Date,
-    mods: List<ModWithUpdates>,
-}
-
 export type Error = {
     statusCode: int;
     message: string;

@@ -1,108 +1,164 @@
-import { ModAndUpdate, ModEntity, UpdateEntity, createInstance, createNullableInstance } from "../types/entities";
-import { List, long, Optional } from "../types/java";
-import { ModRepository } from "./ModRepository";
-import { ManagedRepository, Pageable } from "./Repository";
+import { IModUpdate, ModUpdateModel } from "../database";
+import { findOrCreateByModId } from "./ModRepository";
+import { Pageable } from "./Repository";
 
-class UpdateRepositoryImp extends ManagedRepository<any> {
-
-    private modWithUpdates: UpdateHandler<ModAndUpdate> = { lastUpdate: 0, value: [] };
-    private latestOrRecommendedUpdates: UpdateHandler<UpdateEntity> = { lastUpdate: 0, value: [] };
-
-    public findAllByModOrderByPublishDateDesc(modId: string, pageable: Pageable): List<UpdateEntity> {
-        if (!ModRepository.existsByModId(modId)) return [];
-        return this.findAll().filter(update => update.mod == modId)
-            .map(update => createNullableInstance(UpdateEntity, update))
-            .filter(update => update != null).map(update => update as UpdateEntity)
-            .sort((a, b) => b.date.getTime() - a.date.getTime())
-            .slice(pageable.page * pageable.amount, (pageable.page + 1) * pageable.amount);
-    }
-
-    public findFirstByModAndId(modId: string, id: long): Optional<UpdateEntity> {
-        if (!ModRepository.existsByModId(modId)) return null;
-        const update = this.findAll().find(update => update.mod == modId && update._id == id);
-        return createNullableInstance(UpdateEntity, update);
-    }
-
-    private getEveryUpdatesWithMod(): List<ModAndUpdate> {
-        if ((Date.now() - this.modWithUpdates.lastUpdate) / 1000 > 30) {
-            const mods = ModRepository.findAll().map(mod => createNullableInstance(ModEntity, mod));
-            this.modWithUpdates.value = this.findAll().map(update => createNullableInstance(UpdateEntity, update))
-                .map(update => {
-                    const mod = mods.find(mod => mod?.modID == update?.mod);
-                    if (mod == null || update == null) return null;
-                    return createInstance(ModAndUpdate, { update, mod })
-                }).filter(update => update != null).map(update => update as ModAndUpdate)
-                .sort((a, b) => b.update.date.getTime() - a.update.date.getTime());
-            this.modWithUpdates.lastUpdate = Date.now();
-        }
-        return this.modWithUpdates.value;
-    }
-
-    public getAllUpdatesWithMod(pageable: Pageable): List<ModAndUpdate> {
-        return this.getEveryUpdatesWithMod().slice(pageable.page * pageable.amount, (pageable.page + 1) * pageable.amount);
-    }
-
-    public getAllByMod(mod: string): List<UpdateEntity> {
-        if (!ModRepository.existsByModId(mod)) return [];
-        return this.findAll().filter(update => update.mod == mod)
-            .map(update => createNullableInstance(UpdateEntity, update))
-            .filter(update => update != null).map(update => update as UpdateEntity)
-            .sort((a, b) => b.date.getTime() - a.date.getTime());
-    }
-
-    public removeAllByMod(modId: string) {
-        this.findAll().filter(update => update.mod == modId)
-            .map(update => update._id).forEach(id => delete this.cache[id]);
-        this.collection.deleteMany({ mod: modId });
-    }
-
-    private getLatestOrRecommendedUpdates(): List<UpdateEntity> {
-        if ((Date.now() - this.latestOrRecommendedUpdates.lastUpdate) / 1000 > 30) {
-            this.latestOrRecommendedUpdates.lastUpdate = Date.now();
-            this.latestOrRecommendedUpdates.value = this.findAll().map(update => createNullableInstance(UpdateEntity, update))
-                .filter(update => update != null).map(update => update as UpdateEntity)
-                .sort((a, b) => b.date.getTime() - a.date.getTime())
-                .filter((v, i, a) => {
-                    if (v.tags.includes('recommended')) return v;
-                    return a.filter(c => c.modLoader == v.modLoader).filter(c => c.mod == v.mod)
-                        .findIndex(c => c.gameVersion == v.gameVersion) == i;
-                });
-        }
-        return this.latestOrRecommendedUpdates.value;
-    }
-
-    private getLatestUpdates(): List<UpdateEntity> {
-        return this.getLatestOrRecommendedUpdates()
-            .filter((v, i, a) => { // Grabs the latest releases
-                return a.filter(c => c.modLoader == v.modLoader).filter(c => c.mod == v.mod)
-                    .findIndex(c => c.gameVersion == v.gameVersion) == i;
-            });
-
-    }
-
-    private getRecommendedUpdates(): List<UpdateEntity> {
-        return this.getLatestOrRecommendedUpdates().reverse()
-            .filter((v, i, a) => { // Gets all recommened mods before the latest
-                if (v.tags.includes('recommended')) return v;
-                return a.filter(c => c.modLoader == v.modLoader).filter(c => c.mod == v.mod)
-                    .findIndex(c => c.gameVersion == v.gameVersion) == i;
-            }).reverse().filter((v, i, a) => { // Grabs the latest recommended mods (if multiple were suggested)
-                return a.filter(c => c.modLoader == v.modLoader).filter(c => c.mod == v.mod)
-                    .findIndex(c => c.gameVersion == v.gameVersion) == i;
-            });
-    }
-
-    public getLatestUpdateEntries(modId: string, loader: string): List<UpdateEntity> {
-        return this.getLatestUpdates().filter(update => update.modLoader == loader)
-            .filter(update => update.mod == modId);
-    }
-
-    public getRecommendedUpdateEntries(modId: string, loader: string): List<UpdateEntity> {
-        return this.getRecommendedUpdates().filter(update => update.modLoader == loader)
-            .filter(update => update.mod == modId);
-    }
+export async function isEmpty(): Promise<boolean> {
+    const updates = await ModUpdateModel.find();
+    return updates.length == 0;
 }
 
-export const UpdateRepository = new UpdateRepositoryImp("update");
+export async function createUpdate(update: IModUpdate): Promise<IModUpdate> {
+    return await ModUpdateModel.create( update ).catch(e => null);
+}
 
-type UpdateHandler<T> = { lastUpdate: number, value: List<T> };
+export async function createUpdateWithId(modID: string, update: IModUpdate): Promise<IModUpdate> {
+    update.mod = (await findOrCreateByModId(modID))._id;
+    return await ModUpdateModel.create( update ).catch(e => null);
+}
+
+export async function editUpdate(modId: string, id: number, data: Partial<IModUpdate>): Promise<boolean> {
+    const update = await findUpdateByModAndId(modId, id);
+    if (update == null) return false;
+    return (await ModUpdateModel.findByIdAndUpdate(update._id, data)) != null;
+}
+
+export async function deleteUpdate(modId: string, id: number) {
+    const update = await findUpdateByModAndId(modId, id);
+    if (update == null) return false;
+    return (await ModUpdateModel.deleteOne({ _id: update._id })).deletedCount > 0;
+}
+
+export async function getModUpdates(modId: string, pageable: Pageable): Promise<IModUpdate[]> {
+    const { page, amount: limit} = pageable;
+
+    return await ModUpdateModel.aggregate([
+        { $project: { __v: 0, _id: 0, }},       // hides _id and __v tags
+        { $sort: { id: -1 } },                  // sort by latest
+        { $lookup: {
+            from: 'mods',                       // model
+            localField: 'mod',                  // field (within ModUpdateModel)
+            foreignField: '_id',                // field (within ModModel)
+            as: 'mod'                           // save as
+        } },
+        { $unwind: '$mod' },                    // pulls into output
+        { $addFields: { mod: '$mod.modID' } },  // makes the mod (within ModUpdateModel) the modID
+        { $match: { mod: modId } },             // filters out based on modID
+        { $skip: limit * page },                // skip x pages
+        { $limit: limit },                      // limit to x per page
+    ]);
+}
+
+export async function findUpdateByModAndId(modId: string, id: number): Promise<IModUpdate> {
+    const results = await ModUpdateModel.aggregate([
+        { $project: { __v: 0, _id: 0, }},       // hides _id and __v tags
+        { $lookup: {
+            from: 'mods',                       // model
+            localField: 'mod',                  // field (within ModUpdateModel)
+            foreignField: '_id',                // field (within ModModel)
+            as: 'mod'                           // save as
+        } },
+        { $unwind: '$mod' },                    // pulls into output
+        { $match: { 
+            'mod.modID': modId,                 // filters out based on modID
+            id: id                              // filters out based on update id
+         } },
+        { $addFields: { mod: '$mod.modID' } },  // makes the mod (within ModUpdateModel) the modID
+        { $limit: 1 },                          // limit to 1
+    ])
+    
+    return results[0];
+}
+
+export async function getAllUpdatesWithMod(pageable: Pageable): Promise<IModUpdate[]> {
+    const { page, amount: limit} = pageable;
+
+    return await ModUpdateModel.aggregate([
+        { $project: { __v: 0, _id: 0, }},       // hides _id and __v tags
+        { $lookup: {
+            from: 'mods',                       // model
+            localField: 'mod',                  // field (within ModUpdateModel)
+            foreignField: '_id',                // field (within ModModel)
+            as: 'mod'                           // save as
+        } },
+        { $skip: limit * page },                // skip x pages
+        { $limit: limit },                      // limit to x per page
+        { $project: { 
+            'mod._id': 0,                       // hides mod _id tag
+            'mod.__v': 0,                       // hides mod __v tag
+        }},
+    ]);
+}
+
+export async function getAllByMod(modId: string): Promise<IModUpdate[]> {
+    return await ModUpdateModel.aggregate([
+        { $project: { __v: 0, _id: 0, }},       // hides _id and __v tags
+        { $lookup: {
+            from: 'mods',                       // model
+            localField: 'mod',                  // field (within ModUpdateModel)
+            foreignField: '_id',                // field (within ModModel)
+            as: 'mod'                           // save as
+        } },
+        { $unwind: '$mod' },                    // pulls into output
+        { $match: { 'mod.modID': modId } },     // filters out based on modID
+        { $addFields: { mod: '$mod.modID' } },  // makes the mod (within ModUpdateModel) the modID
+    ]);
+}
+
+export async function removeAllByMod(modId: string) {
+    const updateIds = await getAllByMod(modId).then(updates => updates.map(u => u._id));
+    return (await ModUpdateModel.deleteMany({ _id: { $in: updateIds } })).deletedCount > 0;
+}
+
+export async function getLatestUpdateEntries(modId: string, loader: string): Promise<IModUpdate[]> {
+    return await ModUpdateModel.aggregate([
+        { $project: { __v: 0, _id: 0, }},       // hides _id and __v tags
+        { $sort: { id: -1 } },                  // sort by latest
+        { $lookup: {
+            from: 'mods',                       // model
+            localField: 'mod',                  // field (within ModUpdateModel)
+            foreignField: '_id',                // field (within ModModel)
+            as: 'mod'                           // save as
+        } },
+        { $unwind: '$mod' },                    // pulls into output
+        { $match: { $and: [
+            { 'mod.modID': modId },             // filters out based on modID
+            { modLoader: loader },              // filters out based on loader
+        ] } },
+        { $addFields: { mod: '$mod.modID' } },  // makes the mod (within ModUpdateModel) the modID
+        { $group: {
+            _id: '$gameVersion',
+            doc: { $first: '$$ROOT' }           // keeps the first document per group
+        } },
+        { $replaceRoot: { newRoot: '$doc' } },  // flatten the grouped document
+    ]);
+}
+
+export async function getRecommendedUpdateEntries(modId: string, loader: string): Promise<IModUpdate[]> {
+    return await ModUpdateModel.aggregate([
+        { $project: { __v: 0, _id: 0, }},       // hides _id and __v tags
+        { $lookup: {
+            from: 'mods',                       // model
+            localField: 'mod',                  // field (within ModUpdateModel)
+            foreignField: '_id',                // field (within ModModel)
+            as: 'mod'                           // save as
+        } },
+        { $unwind: '$mod' },                    // pulls into output
+        { $match: { $and: [
+            { 'mod.modID': modId },             // filters out based on modID
+            { modLoader: loader },              // filters out based on loader
+        ] } },
+        { $addFields: {
+            mod: '$mod.modID',                  // makes the mod (within ModUpdateModel) the modID
+            recommend: { 
+                $in: ['recommended', '$tags']   // adds a recommend bool if recommended
+            },
+        } },
+        { $sort: { recommend: -1, id: -1 } },   // sort by recommended then latest
+        { $group: {
+            _id: '$gameVersion',
+            doc: { $first: '$$ROOT' }           // keeps the first document per group
+        } },
+        { $replaceRoot: { newRoot: '$doc' } },  // flatten the grouped document
+    ]);
+}
+

@@ -2,6 +2,8 @@
 import { NextFunction, Request, Response } from 'express';
 import * as express from 'express';
 
+import { HOST, PORT } from './constants';
+
 import apiKeyRoute from './routes/apiKeyController';
 import backupRoute from './routes/backupController';
 import forgeRoute from './routes/forgeController';
@@ -10,17 +12,12 @@ import updateCheckRoute from './routes/updateCheckController';
 import updateRoute from './routes/updateController';
 import { ResponseStatusException } from './types/errors';
 import { resolve } from 'path';
+import { connectDB } from './database';
 
+connectDB()
 const app = express();
+
 app.use(express.json());
-
-const HOST = process.env.HOST || '0.0.0.0';
-const PORT = parseInt(process.env.PORT) || 3000;
-
-// app.use((req: Request, res: Response, next: NextFunction) => {
-//     console.log('%s %s', req.method.toUpperCase(), req.url);
-//     next();
-// });
 
 app.get('/', (req: Request, res: Response) => {
     res.sendFile(resolve('pages/welcome.html'));
@@ -33,15 +30,10 @@ app.use('/mods', modRoute);
 app.use('/check', updateCheckRoute);
 app.use('/updates', updateRoute);
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    if (err.name == "ResponseStatusException") {
-        const e: ResponseStatusException = err as ResponseStatusException;
-        res.status(e.status).send({ statusCode: e.status, message: e.message });
-        console.error({ statusCode: e.status, message: e.message });
-    } else {
-        console.error(err.stack);
-        res.status(500).send('Something broke!');
-    }
+app.use(function (err: Error, req: Request, res: Response, next: NextFunction) {
+    if (err instanceof ResponseStatusException) res.status(err.status).json(err.json);
+    else if (err) res.status(500).json({ status: "500", message: err.message });
+    else next();
 });
 
 app.listen(PORT, HOST, () => {

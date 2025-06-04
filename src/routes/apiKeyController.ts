@@ -1,26 +1,26 @@
 import { Request, Response, Router } from "express";
+import asyncHandler = require("express-async-handler");
 const ROUTER = Router();
 
-import * as ApiKeyService from "../services/apiKeyService";
+import { addApiKey, getApiKeys, removeApiKey } from "../repositories/ApiKeyRepository";
+import { HttpStatus, ResponseStatusException } from "../types/errors";
 import { validateMasterApiKey } from "./middleware/apiKey";
-import { HttpStatus, PassErrorToParent, ResponseStatusException } from "../types/errors";
 
 
-ROUTER.get('/', validateMasterApiKey, (req: Request, res: Response) => {
-    res.status(200).json(ApiKeyService.getApiKeys());
-});
+ROUTER.get('/', validateMasterApiKey, asyncHandler(async (req: Request, res: Response) => {
+    res.status(200).json(await getApiKeys());
+}));
 
-ROUTER.post('/add', validateMasterApiKey, (req: Request, res: Response) => {
-    res.status(200).json(ApiKeyService.addApiKey(req.body));
-});
+ROUTER.post('/add', validateMasterApiKey, asyncHandler(async (req: Request, res: Response) => {
+    res.status(200).json(await addApiKey(req.body?.mods));
+}));
 
-ROUTER.delete('/:apiKey', validateMasterApiKey, (req: Request, res: Response) => {
-    if (!ApiKeyService.removeApiKey(req.params.apiKey))
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ApiKey not found");
+ROUTER.delete('/:apiKey', validateMasterApiKey, asyncHandler(async (req: Request, res: Response) => {
+    const successful = await removeApiKey(req.params.apiKey);
+
+    if (!successful) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ApiKey not found");
     else res.status(200).json({ status: 200, message: "OK" });
-});
-
-ROUTER.use(PassErrorToParent);
+}));
 
 export default ROUTER;
 

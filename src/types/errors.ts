@@ -6,11 +6,11 @@ export class ResponseStatusException extends Error {
     constructor(public status: HttpStatus, public message: string) {
         super(message);
     }
-}
 
-export function PassErrorToParent(err: Error, req: Request, res: Response, next: NextFunction) {
-    next(err)
-};
+    get json() {
+        return { status: this.status, message: this.message };
+    }
+}
 
 export enum HttpStatus {
     CONTINUE = 100,

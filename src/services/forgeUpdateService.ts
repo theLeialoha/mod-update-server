@@ -1,21 +1,17 @@
-import { ModRepository } from "../repositories/ModRepository";
-import { UpdateRepository } from "../repositories/UpdateRepository";
-import { ModEntity, UpdateEntity } from "../types/entities";
-import { HashMap, List, Optional } from "../types/java";
+import { IMod, IModUpdate } from "../database";
+import { findByModId } from "../repositories/ModRepository";
+import { getLatestUpdateEntries, getRecommendedUpdateEntries } from "../repositories/UpdateRepository";
+import { HashMap } from "../types/java";
 
-export function modUpdatesForLoader(loader: string, modID: string): HashMap<string, any> {
-    const optionalMod: Optional<ModEntity> = ModRepository.findByModId(modID);
-    if (optionalMod == null) return {};
-
-    // Counter.builder("requests.update_check.cache_miss").tag("loader", loader).tag("modID", modID).register(meterRegistry).increment();
-
-    const mod: ModEntity = optionalMod;
+export async function modUpdatesForLoader(loader: string, modID: string) {
+    const mod: IMod = await findByModId(modID);
+    if (mod == null) return {};
 
     const forgeFormat: HashMap<string, any> = {};
     const promos: HashMap<string, string> = {};
 
-    const latest: List<UpdateEntity> = UpdateRepository.getLatestUpdateEntries(mod.modID, loader);
-    const recommended: List<UpdateEntity> = UpdateRepository.getRecommendedUpdateEntries(mod.modID, loader);
+    const latest: IModUpdate[] = await getLatestUpdateEntries(modID, loader);
+    const recommended: IModUpdate[] = await getRecommendedUpdateEntries(modID, loader);
 
     for (const entity of latest) {
         const o: HashMap<string, string> = forgeFormat[entity.gameVersion] || {};
@@ -29,7 +25,7 @@ export function modUpdatesForLoader(loader: string, modID: string): HashMap<stri
         promos[`${entity.gameVersion}-recommended`] = entity.version;
     }
 
-    forgeFormat["promos"] = promos;
-    forgeFormat["homepage"] = mod.websiteURL;
+    forgeFormat.promos = promos;
+    forgeFormat.homepage = mod.websiteURL;
     return forgeFormat;
 }

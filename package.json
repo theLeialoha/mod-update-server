@@ -8,14 +8,16 @@
   "license": "All Rights Reserved",
   "private": true,
   "dependencies": {
-    "@types/node": "^22.10.2",
     "express": "^4.21.2",
+    "express-async-handler": "^1.2.0",
     "mongodb": "^6.12.0",
+    "mongoose": "^8.15.1",
     "uuid": "^11.0.3",
     "uuid-validate": "^0.0.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
     "@types/uuid": "^10.0.0",
     "@types/uuid-validate": "^0.0.3",
     "dotenv": "^16.4.7",

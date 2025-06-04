@@ -2,20 +2,10 @@ import { NextFunction, Request, Response } from "express";
 
 import * as AuthenticationAspect from "../../aspects/AuthenticationAspect";
 
-export const validateApiKey = (req: Request, res: Response, next: NextFunction) => {
-    try {
-        AuthenticationAspect.validateHeaders(req);
-        next();
-    } catch (e) {
-        next(e);
-    }
+export const validateApiKey = async (req: Request, res: Response, next: NextFunction) => {
+    AuthenticationAspect.validateHeaders(req).catch(e => e).then(next);
 }
 
 export const validateMasterApiKey = (req: Request, res: Response, next: NextFunction) => {
-    try {
-        AuthenticationAspect.validateHeadersMaster(req);
-        next();
-    } catch (e) {
-        next(e);
-    }
+    AuthenticationAspect.validateHeadersMaster(req).catch(e => e).then(next);
 }
